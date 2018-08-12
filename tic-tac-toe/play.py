@@ -1,50 +1,24 @@
 import pygame
 import sys
-
-
-def game_done(grid):
-    print(grid)
-    grid_size = len(grid)
-
-    for i in range(grid_size):
-        # checking rows
-        if all([x == 0 for x in grid[i]]) or all([x == 1 for x in grid[i]]):
-            return True
-        # checking columns
-        elif all([x[i] == 0 for x in grid]) or all([x[i] == 1 for x in grid]):
-            return True
-    # checking diagonal
-    if all([grid[i][i] == 0 for i in range(grid_size)]) or all([grid[i][i] == 1 for i in range(grid_size)]):
-        return True
-    # checking reverse diagonal
-    elif all([grid[i][-i-1] == 0 for i in range(grid_size)]) or all([grid[i][-i-1] == 0 for i in range(grid_size)]):
-        return True
-    return False
+from helper import DataBoard, DisplayBoard
 
 
 def main():
     pygame.init()
+    
+    # Backend data board parameters
+    board_size = 4  # number of squares in the puzzle gz x gz
+    data_board = DataBoard(board_size)  # Under the hood game board
 
-    grid_size = 4  # number of squares in the puzzle gz x gz
-    cell_size = 100  # Each square is of size cz x cz
-    window_size = (grid_size+2)*100  # main outer window wz x wz
-    grid_backend = [[-1]*grid_size for _ in range(grid_size)]  # Under the hood game board
-
-    color = [(0,0,255), (255, 0, 0)]
-    black = (0, 0, 0)
+    # Frontend display board parameters
+    cell_size = 100  # Each square is of size cz x cz (pixels)
+    line_width = 8
     white = (255, 255, 255)
-
-    game_window = pygame.display.set_mode((window_size, window_size), 0, 32)
-    start_pos = (window_size-grid_size*cell_size)/2
-    end_pos = window_size-start_pos
-
-    for i in range(grid_size+1):
-        # draw vertical grid lines
-        pygame.draw.line(game_window, white, [start_pos+i*cell_size, start_pos], [start_pos+i*cell_size, end_pos], 5)
-
-        # draw horizontal grid lines
-        pygame.draw.line(game_window, white, [start_pos, start_pos+i*cell_size], [end_pos, start_pos+i*cell_size], 5)
-
+    red = (255, 0, 0)
+    blue = (0, 0, 255)
+    color = [red, blue]
+    display_board = DisplayBoard(board_size, cell_size, line_width, white)
+    
     player = 0
     while True:
         for event in pygame.event.get():
@@ -52,24 +26,37 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-            pygame.mouse.set_visible(True)
-            mouse_pressed = pygame.mouse.get_pressed()[0]
-            if event.type == pygame.MOUSEBUTTONDOWN and mouse_pressed:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                print('clicked at %s, %s' % (mouse_x, mouse_y))
-                if start_pos <= mouse_x <= end_pos and start_pos <= mouse_y <= end_pos:
-                    print('cell %s %s' % (mouse_x//cell_size, mouse_y//cell_size))
-                    if grid_backend[mouse_x//cell_size-1][mouse_y//cell_size-1] != -1:
-                        print('filled cell')
-                        continue
-                    pygame.draw.rect(game_window, color[player], [cell_size*(mouse_x//cell_size),
-                                                                  cell_size*(mouse_y//cell_size),
-                                                                  cell_size, cell_size])
-                    grid_backend[mouse_x//cell_size-1][mouse_y//cell_size-1] = player
-                    if game_done(grid_backend):
-                        print('player %s wins!' % player)
-                        pygame.quit()
-                        sys.exit()
+            # Waiting for mouse pressed (not released) event.
+            if not event.type == pygame.MOUSEBUTTONDOWN:
+                continue
+
+            # Get the clicked cell
+            row, col = pygame.mouse.get_pos()
+            row, col = row//cell_size, col//cell_size
+            if 1 <= row <= board_size and 1 <= col <= board_size:
+                if not data_board.is_empty(row-1, col-1):
+                    continue
+
+                # Fill the valid cell
+                display_board.color_cell(row, col, color[player])
+                data_board.set_value(row-1, col-1, player)
+
+                # Check if there is a winner
+                if data_board.is_decided():
+                    print('player %i wins!' % (player+1))
+                    data_board.reset()
+                    display_board.reset()
+                    player = 0
+
+                # Check for draw
+                elif data_board.is_filled():
+                    print('It\'s a draw')
+                    data_board.reset()
+                    display_board.reset()
+                    player = 0
+
+                # Continue the same game
+                else:
                     player = (player+1) % 2
 
         pygame.display.update()
