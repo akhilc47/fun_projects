@@ -1,5 +1,6 @@
 import pygame
 import sys
+import time
 from helper import DataBoard, DisplayBoard
 
 
@@ -20,6 +21,8 @@ def main():
     display_board = DisplayBoard(board_size, cell_size, line_width, white)
     
     player = 0
+    score = [0, 0]
+    display_board.add_text(('p1 = %i | p2 = %i' % (score[0], score[1])), 0.5, 1-(1/((board_size+2)*2)))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -38,19 +41,27 @@ def main():
                     continue
 
                 # Fill the valid cell
+                print(row, col, player)
                 display_board.color_cell(row, col, color[player])
                 data_board.set_value(row-1, col-1, player)
 
                 # Check if there is a winner
-                if data_board.is_decided():
+                if data_board.is_winner():
+                    score[player] += 1
                     print('player %i wins!' % (player+1))
+                    display_board.add_text(('player %i wins!' % (player+1)), 0.5, 1/((board_size+2)*2))
+                    time.sleep(3)
                     data_board.reset()
                     display_board.reset()
+                    display_board.add_text(('p1 = %i | p2 = %i' % (score[0], score[1])), 0.5,
+                                           1 - (1 / ((board_size + 2) * 2)))
                     player = 0
 
                 # Check for draw
-                elif data_board.is_filled():
+                if data_board.is_draw():
                     print('It\'s a draw')
+                    display_board.add_text('It\'s a draw', 0.5, 1/((board_size+2)*2))
+                    time.sleep(3)
                     data_board.reset()
                     display_board.reset()
                     player = 0
@@ -58,8 +69,6 @@ def main():
                 # Continue the same game
                 else:
                     player = (player+1) % 2
-
-        pygame.display.update()
 
 
 if __name__ == "__main__":
