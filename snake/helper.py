@@ -15,16 +15,7 @@ class SnakeBoard:
         self.update_visual()
 
     def update_direction(self, direction):
-        if direction == 'RIGHT':
-            self.direction = [1, 0]
-        elif direction == 'LEFT':
-            self.direction = [-1, 0]
-        elif direction == 'UP':
-            self.direction = [0, -1]
-        elif direction == 'DOWN':
-            self.direction = [0, 1]
-        else:
-            print('Invalid direction')
+        self.direction = direction
         print(direction, self.direction)
         return
 
