@@ -1,25 +1,24 @@
 import sys
 import pygame
-import time
 from helper import SnakeBoard
 
 
 def main():
     pygame.init()
+    clock = pygame.time.Clock()
 
     # Display parameters
     cell_size = 20  # Size of the smallest occupiable block
-    board_size = 600  # Size of entire board NxN
-    max_length = 20
+    board_size = 500  # Size of entire board NxN
+    speed = 20  # Snake will move this much pixels every frame.
     direction_dict = {pygame.K_LEFT: [-1, 0],
                       pygame.K_RIGHT: [1, 0],
                       pygame.K_DOWN: [0, 1],
                       pygame.K_UP: [0, -1]}
 
     # Display main window
-    snake = SnakeBoard(cell_size, board_size, max_length)
+    snake = SnakeBoard(cell_size, board_size, speed)
 
-    last_update = time.time()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -30,15 +29,10 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 # Update when key pressed
                 if event.key in direction_dict:
-                    snake.update_direction(direction_dict[event.key])
-                else:
-                    continue
-                snake.update_visual()
+                    snake.change_direction(direction_dict[event.key])
 
-        if time.time()-last_update > 0.5:
-            last_update = time.time()
-            snake.move_snake()
-            snake.update_visual()
+        snake.move_snake()
+        clock.tick(10)
 
 
 if __name__ == "__main__":

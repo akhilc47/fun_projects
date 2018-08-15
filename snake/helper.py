@@ -1,34 +1,59 @@
 import pygame
+from random import randint as randi
 
 
 class SnakeBoard:
-    def __init__(self, cell_size, board_size, max_length):
+    def __init__(self, cell_size, board_size, speed):
         self.cell_size = cell_size
-        self.grid_size = board_size/cell_size
+        self.board_size = board_size
         self.length = 1
-        self.max_length = max_length
-        self.cell_color = (255, 255, 255)  # white
-        self.direction = [1, 0]  # Right
-        self.cells = [[self.grid_size//2, self.grid_size//2]]  # Only one cell at center of the board
-        self.last_cell = self.cells[0]
+        self.disp_length = 1
+        self.speed = speed
+        self.white = (255, 255, 255)
+        self.black = (0, 0, 0)
+        self.red = (255, 0, 0)
+        self.shift = [speed, 0]  # Right
         self.game_window = pygame.display.set_mode((board_size, board_size), 0, 32)
-        self.update_visual()
+        self.cells = [[board_size//2, self.board_size//2], [board_size//2-self.cell_size, self.board_size//2],
+                      [board_size // 2 - 2*self.cell_size, self.board_size // 2]]
+        self.tail = self.cells[-1]
+        pygame.draw.rect(self.game_window, self.white, [board_size//2, self.board_size//2,
+                                                        self.cell_size, self.cell_size])
+        self.tail = self.cells[-1]
+        self.food = []
+        self.food_rect = self.make_food()
+        pygame.display.update()
 
-    def update_direction(self, direction):
-        self.direction = direction
-        print(direction, self.direction)
-        return
-
-    def update_visual(self):
-        cell = self.last_cell
-        pygame.draw.rect(self.game_window, (0, 0, 0),
-                         [cell[0]*self.cell_size, cell[1]*self.cell_size, self.cell_size, self.cell_size])
-        for cell in self.cells:
-            pygame.draw.rect(self.game_window, self.cell_color,
-                             [cell[0]*self.cell_size, cell[1]*self.cell_size, self.cell_size, self.cell_size])
-            pygame.display.update()
+    def change_direction(self, direction):
+        self.shift = [direction[0]*self.speed, direction[1]*self.speed]
 
     def move_snake(self):
-        self.last_cell = self.cells[-1]
-        self.cells = [[cell[0]+self.direction[0], cell[1]+self.direction[1]] for cell in self.cells]
-        print(self.cells)
+        self.tail = self.cells[-1]
+        cell = self.cells[0]
+        self.cells[0] = [(self.cells[0][0]+self.shift[0]) % self.board_size,
+                         (self.cells[0][1]+self.shift[1]) % self.board_size]
+        head_rect = pygame.draw.rect(self.game_window, self.white,
+                                     [self.cells[0][0], self.cells[0][1], self.cell_size, self.cell_size])
+        if head_rect.colliderect(self.food_rect):
+            self.length += 1
+            self.cells.append(self.tail)
+            pygame.draw.rect(self.game_window, self.black,
+                             [self.food[0], self.food[1], self.cell_size, self.cell_size])
+            self.food_rect = self.make_food()
+        pygame.display.update()
+        for i in range(1, len(self.cells)):
+            temp = self.cells[i]
+            self.cells[i] = cell
+            cell = temp
+        if self.length == self.disp_length:
+            pygame.draw.rect(self.game_window, self.black, [self.tail[0], self.tail[1], self.speed, self.speed])
+            pygame.display.update()
+        else:
+            self.disp_length += 1
+
+    def make_food(self):
+        self.food = [randi(0, self.board_size/self.cell_size)*self.cell_size,
+                     randi(0, self.board_size/self.cell_size)*self.cell_size]
+        return pygame.draw.rect(self.game_window, self.red,
+                                [self.food[0], self.food[1], self.cell_size, self.cell_size])
+
