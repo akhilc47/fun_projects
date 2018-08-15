@@ -9,7 +9,7 @@ def main():
 
     # Display parameters
     cell_size = 20  # Size of the smallest occupiable block
-    board_size = 500  # Size of entire board NxN
+    board_size = 600  # Size of entire board NxN
     speed = 20  # Snake will move this much pixels every frame.
     direction_dict = {pygame.K_LEFT: [-1, 0],
                       pygame.K_RIGHT: [1, 0],
@@ -32,7 +32,7 @@ def main():
                     snake.change_direction(direction_dict[event.key])
 
         snake.move_snake()
-        clock.tick(10)
+        clock.tick(20)
 
 
 if __name__ == "__main__":
