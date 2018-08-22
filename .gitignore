@@ -105,3 +105,6 @@ venv.bak/
 
 # pycharm
 .idea/
+
+# discord token
+quick_maths/config.ini
